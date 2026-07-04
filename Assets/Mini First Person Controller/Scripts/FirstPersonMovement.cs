@@ -13,12 +13,12 @@ public class FirstPersonMovement : MonoBehaviour
     public bool isManic = false;
 
     [Header("Acceleration / Friction")]
-    [Tooltip("How quickly velocity ramps up toward target speed while grounded.")]
-    public float groundAcceleration = 60f;
-    [Tooltip("How quickly velocity bleeds off when there's no input (or opposing input) while grounded.")]
-    public float groundFriction = 45f;
+    [Tooltip("How quickly velocity ramps up toward target speed while grounded. Keep this well under 1/Time.fixedDeltaTime or speed changes will snap instantly instead of ramping.")]
+    public float groundAcceleration = 14f;
+    [Tooltip("How quickly velocity bleeds off when there's no input (or opposing input) while grounded. Keep well under 1/Time.fixedDeltaTime for a gradual stop instead of an instant one.")]
+    public float groundFriction = 8f;
     [Tooltip("How quickly velocity ramps up toward target speed while airborne. Lower than ground accel so you can't fully redirect mid-air.")]
-    public float airAcceleration = 25f;
+    public float airAcceleration = 8f;
     [Tooltip("Speed cap applied to air acceleration, independent of ground speed/run speed.")]
     public float airMaxSpeed = 7f;
 
@@ -71,6 +71,10 @@ public class FirstPersonMovement : MonoBehaviour
         {
             horizontalVelocity = ApplyFriction(horizontalVelocity, groundFriction, Time.fixedDeltaTime);
             horizontalVelocity = Accelerate(horizontalVelocity, wishDir, targetMovingSpeed, groundAcceleration, Time.fixedDeltaTime);
+        }
+        else if (!IsGrounded && !isManic)
+        {
+            horizontalVelocity = Accelerate(horizontalVelocity, wishDir, airMaxSpeed, 0, Time.fixedDeltaTime);
         }
         else
         {
