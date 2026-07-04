@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.UI; // REQUIRED to talk to UI elements
+using UnityEngine.UI;
 
 public class TerrorSystem : MonoBehaviour
 {
@@ -12,8 +12,13 @@ public class TerrorSystem : MonoBehaviour
     public GameObject gameOverScreen;  
 
     [Header("Expressions")]
-    public Image expressionUI;         // The UI Image component where the face is displayed
-    public Sprite[] expressionSprites; // Array of 5 sprites (0 = calm, 4 = terrified)
+    public Image expressionUI;         
+    public Sprite[] expressionSprites; 
+
+    // YENİ EKLENEN KISIM: İlaç ve Manik Mod Ayarları
+    [Header("Manic Mode Settings")]
+    public Sprite manicSprite;         // İlacı içince görünecek özel sprite
+    public bool isManicMode = false;   // Karakter şu an avcı modunda mı?
 
     [Header("Terror Settings")]
     public float currentTerror = 0f;
@@ -29,6 +34,35 @@ public class TerrorSystem : MonoBehaviour
     {
         if (isFainted) return; 
 
+        // Eğer manik moddaysak (ilaç içildiyse), terör artmasın (isteğe bağlı)
+        if (isManicMode)
+        {
+            // İstersen burada currentTerror'ü sıfırlayabilir veya dondurabilirsin.
+            // Örnek: currentTerror -= decreaseRate * Time.deltaTime * 2f; 
+        }
+        else
+        {
+            // Normal Terör Hesaplaması (Sadece manik modda değilsek çalışır)
+            CalculateTerror();
+        }
+
+        currentTerror = Mathf.Clamp(currentTerror, 0f, maxTerror);
+
+        if (terrorMeter != null)
+        {
+            terrorMeter.value = currentTerror;
+        }
+
+        UpdateExpression();
+
+        if (currentTerror >= maxTerror && !isManicMode)
+        {
+            TriggerFaintState();
+        }
+    }
+
+    void CalculateTerror()
+    {
         bool enemyIsNear = false;
         float closestDistance = Mathf.Infinity;
 
@@ -37,14 +71,10 @@ public class TerrorSystem : MonoBehaviour
             if (enemy != null)
             {
                 float distance = Vector3.Distance(player.position, enemy.position);
-
                 if (distance < terrorRadius)
                 {
                     enemyIsNear = true;
-                    if (distance < closestDistance) 
-                    {
-                        closestDistance = distance;
-                    }
+                    if (distance < closestDistance) closestDistance = distance;
                 }
             }
         }
@@ -58,41 +88,40 @@ public class TerrorSystem : MonoBehaviour
         {
             currentTerror -= decreaseRate * Time.deltaTime;
         }
-
-        currentTerror = Mathf.Clamp(currentTerror, 0f, maxTerror);
-
-        // UPDATE THE VISUAL UI METER
-        if (terrorMeter != null)
-        {
-            terrorMeter.value = currentTerror;
-        }
-
-        // UPDATE THE EXPRESSION
-        UpdateExpression();
-
-        if (currentTerror >= maxTerror)
-        {
-            TriggerFaintState();
-        }
     }
 
     void UpdateExpression()
     {
-        // Make sure we have the UI Image and sprites assigned
-        if (expressionUI == null || expressionSprites == null || expressionSprites.Length == 0) return;
+        if (expressionUI == null) return;
 
-        // Calculate terror as a percentage (0.0 to 1.0)
+        // YENİ EKLENEN KISIM: Eğer ilaç içildiyse, sadece avcı sprite'ını göster ve fonksiyondan çık
+        if (isManicMode)
+        {
+            if (manicSprite != null)
+            {
+                expressionUI.sprite = manicSprite;
+            }
+            return; 
+        }
+
+        // Normal Terör Yüzleri (İlaç içilmediyse çalışır)
+        if (expressionSprites == null || expressionSprites.Length == 0) return;
+
         float terrorPercent = currentTerror / maxTerror;
-
-        // Map the percentage to an index in the array
-        // Multiplying by the array length gives us a number from 0 to 5
         int spriteIndex = Mathf.FloorToInt(terrorPercent * expressionSprites.Length);
-
-        // Clamp to ensure the index never goes out of bounds (e.g., if terror is exactly at 100%)
         spriteIndex = Mathf.Clamp(spriteIndex, 0, expressionSprites.Length - 1);
-
-        // Apply the sprite to the UI Image
+        
         expressionUI.sprite = expressionSprites[spriteIndex];
+    }
+
+    // YENİ EKLENEN KISIM: İlacı aldığında bu fonksiyonu çağıracaksın
+    public void TakePill()
+    {
+        isManicMode = true;
+        Debug.Log("İLAÇ ALINDI! ROLLER DEĞİŞTİ, AVCI MODU AKTİF!");
+        
+        // Sprite'ın anında güncellenmesi için çağırıyoruz
+        UpdateExpression(); 
     }
 
     void TriggerFaintState()
@@ -100,13 +129,8 @@ public class TerrorSystem : MonoBehaviour
         isFainted = true;
         Debug.Log("100% TERROR REACHED: BAYILMA EKRANI TETIKLENDI!");
 
-        if (gameOverScreen != null)
-        {
-            gameOverScreen.SetActive(true);
-        }
-
+        if (gameOverScreen != null) gameOverScreen.SetActive(true);
         Time.timeScale = 0f; 
-        
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
