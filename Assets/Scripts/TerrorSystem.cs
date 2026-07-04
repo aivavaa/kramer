@@ -8,8 +8,12 @@ public class TerrorSystem : MonoBehaviour
     public Transform[] enemies;    
     
     [Header("UI Elements")]
-    public Slider terrorMeter;         // The UI Slider we just made
-    public GameObject gameOverScreen;  // The Bayilma panel
+    public Slider terrorMeter;         
+    public GameObject gameOverScreen;  
+
+    [Header("Expressions")]
+    public Image expressionUI;         // The UI Image component where the face is displayed
+    public Sprite[] expressionSprites; // Array of 5 sprites (0 = calm, 4 = terrified)
 
     [Header("Terror Settings")]
     public float currentTerror = 0f;
@@ -19,11 +23,10 @@ public class TerrorSystem : MonoBehaviour
     public float baseIncreaseRate = 5f; 
     public float decreaseRate = 3f;
 
-    private bool isFainted = false; // Prevents the game over from triggering multiple times
+    private bool isFainted = false; 
 
     void Update()
     {
-        // Stop calculating if the player is already dead
         if (isFainted) return; 
 
         bool enemyIsNear = false;
@@ -64,10 +67,32 @@ public class TerrorSystem : MonoBehaviour
             terrorMeter.value = currentTerror;
         }
 
+        // UPDATE THE EXPRESSION
+        UpdateExpression();
+
         if (currentTerror >= maxTerror)
         {
             TriggerFaintState();
         }
+    }
+
+    void UpdateExpression()
+    {
+        // Make sure we have the UI Image and sprites assigned
+        if (expressionUI == null || expressionSprites == null || expressionSprites.Length == 0) return;
+
+        // Calculate terror as a percentage (0.0 to 1.0)
+        float terrorPercent = currentTerror / maxTerror;
+
+        // Map the percentage to an index in the array
+        // Multiplying by the array length gives us a number from 0 to 5
+        int spriteIndex = Mathf.FloorToInt(terrorPercent * expressionSprites.Length);
+
+        // Clamp to ensure the index never goes out of bounds (e.g., if terror is exactly at 100%)
+        spriteIndex = Mathf.Clamp(spriteIndex, 0, expressionSprites.Length - 1);
+
+        // Apply the sprite to the UI Image
+        expressionUI.sprite = expressionSprites[spriteIndex];
     }
 
     void TriggerFaintState()
@@ -75,16 +100,13 @@ public class TerrorSystem : MonoBehaviour
         isFainted = true;
         Debug.Log("100% TERROR REACHED: BAYILMA EKRANI TETIKLENDI!");
 
-        // 1. Activate the black screen
         if (gameOverScreen != null)
         {
             gameOverScreen.SetActive(true);
         }
 
-        // 2. Freeze the game
         Time.timeScale = 0f; 
         
-        // 3. Unlock the mouse cursor so you can click restart buttons later
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
