@@ -3,8 +3,8 @@ using UnityEngine.AI;
 
 public class EnemyAI : MonoBehaviour
 {
-    // 3. Durumu ekledik: Saldýrý
-    public enum AIState { Wandering, Chasing, Attacking }
+    // 4. Durumu ekledik: Kaçýþ (GameManager tarafýndan tetiklenecek)
+    public enum AIState { Wandering, Chasing, Attacking, Fleeing }
     public AIState currentState = AIState.Wandering;
 
     [Header("Hedef")]
@@ -18,7 +18,7 @@ public class EnemyAI : MonoBehaviour
     public float closeAwarenessRadius = 3f; // Bu mesafeye girersen arkasý dönük olsa bile seni HÝSSEDER
 
     [Header("Kovalama Ayarlarý (Chase Modu)")]
-    public float loseRadius = 25f;       // Peþini býrakmasý için arayý ne kadar açman gerektiði (viewRadius'tan büyük olmalý)
+    public float loseRadius = 25f;       // Peþini býrakmasý için arayý ne kadar açman gerektiði
 
     [Header("Saldýrý Ayarlarý (Attack Modu)")]
     public float attackRadius = 2f;      // Sana vurmak için duracaðý mesafe
@@ -26,6 +26,10 @@ public class EnemyAI : MonoBehaviour
     [Header("Gezinme Ayarlarý")]
     public float wanderRadius = 20f;
     private Vector3 patrolCenter;
+
+    [Header("Kaçýþ Ayarlarý (Hunter Modu)")]
+    public float fleeDistance = 15f;     // Ýlacý aldýðýnda senden ne kadar uzaða kaçmaya çalýþacak
+    public float killDistance = 2f;      // Avcý modundayken dibine girersen onu yok edersin
 
     private NavMeshAgent agent;
 
@@ -42,17 +46,32 @@ public class EnemyAI : MonoBehaviour
         SetRandomWanderDestination();
     }
 
+    // GameManager'ýn (veya hapýn) çaðýracaðý fonksiyon
+    public void StartFleeing()
+    {
+        currentState = AIState.Fleeing;
+        agent.isStopped = false;
+        agent.speed += 2f; // Panikledikleri için biraz daha hýzlý koþarlar
+    }
+
     void Update()
     {
         if (playerTarget == null) return;
 
         float distanceToPlayer = Vector3.Distance(transform.position, playerTarget.position);
 
+        // --- YAKALAMA / YOK ETME KONTROLÜ (Öncelikli) ---
+        if (currentState == AIState.Fleeing && distanceToPlayer <= killDistance)
+        {
+            // Ýleride buraya kan efekti veya çýðlýk sesi ekleyebilirsin
+            Destroy(gameObject);
+            return; // Obje yok olduðu için aþaðýdaki kodlarý okumasýný engelliyoruz
+        }
+
         // --- 1. STATE GEÇÝÞ KONTROLLERÝ (Karar Verme Merkezi) ---
         switch (currentState)
         {
             case AIState.Wandering:
-                // Seni görürse YADA çok dibine girip ses çýkarýrsan (açýya bakmaksýzýn) kovalamaya baþlar
                 if (distanceToPlayer <= closeAwarenessRadius || CanSeePlayer(distanceToPlayer))
                 {
                     currentState = AIState.Chasing;
@@ -60,13 +79,11 @@ public class EnemyAI : MonoBehaviour
                 break;
 
             case AIState.Chasing:
-                // Kovalama modundayken artýk açýya (FOV) bakmýyoruz. Sadece arayý ne kadar açtýðýna bakýyoruz.
                 if (distanceToPlayer > loseRadius)
                 {
                     currentState = AIState.Wandering;
                     SetRandomWanderDestination();
                 }
-                // Dibine girdiyse saldýrý moduna geç
                 else if (distanceToPlayer <= attackRadius)
                 {
                     currentState = AIState.Attacking;
@@ -74,27 +91,25 @@ public class EnemyAI : MonoBehaviour
                 break;
 
             case AIState.Attacking:
-                // Sen ondan uzaklaþýrsan tekrar kovalamaya baþlar
                 if (distanceToPlayer > attackRadius)
                 {
                     currentState = AIState.Chasing;
-                    agent.isStopped = false; // Hareketi geri aç
+                    agent.isStopped = false;
                 }
+                break;
+
+            case AIState.Fleeing:
+                // Kaçýþ modundayken artýk geri dönmez, sürekli kaçar (yakalanýp yok edilene kadar)
                 break;
         }
 
         // --- 2. STATE EYLEMLERÝ (Fiziksel Hareketler) ---
         switch (currentState)
         {
-            case AIState.Wandering:
-                PerformWandering();
-                break;
-            case AIState.Chasing:
-                PerformChasing();
-                break;
-            case AIState.Attacking:
-                PerformAttacking();
-                break;
+            case AIState.Wandering: PerformWandering(); break;
+            case AIState.Chasing: PerformChasing(); break;
+            case AIState.Attacking: PerformAttacking(); break;
+            case AIState.Fleeing: PerformFleeing(); break;
         }
     }
 
@@ -145,17 +160,28 @@ public class EnemyAI : MonoBehaviour
 
     private void PerformAttacking()
     {
-        // 1. Ajaný durdur (Seni ittirip üstüne çýkmasýný engeller)
         agent.isStopped = true;
 
-        // 2. Daima yüzünü sana dönmesini saðla
         Vector3 lookDirection = (playerTarget.position - transform.position).normalized;
-        lookDirection.y = 0; // Düþmanýn yukarý doðru yamulmasýný engeller
+        lookDirection.y = 0;
         Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
+    }
 
-        // ÝLERÝDE BURAYA ANÝMASYON KODUNU YAZACAKSIN
-        // Örn: animator.SetTrigger("Attack");
+    private void PerformFleeing()
+    {
+        // Oyuncudan düþmana doðru bir yön vektörü çiz (Ters yön)
+        Vector3 runDirection = (transform.position - playerTarget.position).normalized;
+
+        // Düþmanýn kendi pozisyonundan o ters yöne doðru fleeDistance kadar uzaðý hedefle
+        Vector3 targetPos = transform.position + (runDirection * fleeDistance);
+
+        NavMeshHit hit;
+        // O hedef noktanýn NavMesh üzerinde yürünebilir bir yer olup olmadýðýný kontrol et
+        if (NavMesh.SamplePosition(targetPos, out hit, 5f, NavMesh.AllAreas))
+        {
+            agent.SetDestination(hit.position);
+        }
     }
 
     private void SetRandomWanderDestination()
@@ -174,10 +200,10 @@ public class EnemyAI : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, viewRadius); // Görüþ Alaný
+        Gizmos.DrawWireSphere(transform.position, viewRadius);
 
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, closeAwarenessRadius); // Yakýn Hissetme Alaný
+        Gizmos.DrawWireSphere(transform.position, closeAwarenessRadius);
 
         Vector3 fovLine1 = Quaternion.AngleAxis(viewAngle / 2, Vector3.up) * transform.forward;
         Vector3 fovLine2 = Quaternion.AngleAxis(-viewAngle / 2, Vector3.up) * transform.forward;
