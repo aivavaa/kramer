@@ -29,7 +29,6 @@ public class EnemyAI : MonoBehaviour
 
     [Header("Kaçýþ Ayarlarý (Hunter Modu)")]
     public float fleeDistance = 15f;     // Ýlacý aldýðýnda senden ne kadar uzaða kaçmaya çalýþacak
-    public float killDistance = 2f;      // Avcý modundayken dibine girersen onu yok edersin
 
     private NavMeshAgent agent;
 
@@ -59,14 +58,6 @@ public class EnemyAI : MonoBehaviour
         if (playerTarget == null) return;
 
         float distanceToPlayer = Vector3.Distance(transform.position, playerTarget.position);
-
-        // --- YAKALAMA / YOK ETME KONTROLÜ (Öncelikli) ---
-        if (currentState == AIState.Fleeing && distanceToPlayer <= killDistance)
-        {
-            // Ýleride buraya kan efekti veya çýðlýk sesi ekleyebilirsin
-            Destroy(gameObject);
-            return; // Obje yok olduðu için aþaðýdaki kodlarý okumasýný engelliyoruz
-        }
 
         // --- 1. STATE GEÇÝÞ KONTROLLERÝ (Karar Verme Merkezi) ---
         switch (currentState)
@@ -193,6 +184,17 @@ public class EnemyAI : MonoBehaviour
         if (NavMesh.SamplePosition(randomDirection, out navHit, wanderRadius, -1))
         {
             agent.SetDestination(navHit.position);
+        }
+    }
+
+    // --- SALDIRI ALMA SÝSTEMÝ ---
+    public void TakeDamage()
+    {
+        // Sadece bizden kaçarken (Phase 2'de) hasar alabilirler
+        if (currentState == AIState.Fleeing)
+        {
+            Debug.Log("Düþman vuruldu ve yok edildi!");
+            Destroy(gameObject);
         }
     }
 

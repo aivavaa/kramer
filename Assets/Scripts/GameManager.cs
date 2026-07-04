@@ -18,8 +18,9 @@ public class GameManager : MonoBehaviour
     [Header("Hedef Göstergeleri (Phase 2)")]
     public GameObject bedXRaySilhouette; // Duvar arkasýndan parlayacak yatak kopyasý
 
-    [Header("Phase 1 Ekipmanlarý")]
-    public GameObject flashlightObj; // Fenerin kendisi (Çakýþmada silinmiþti, geri eklendi)
+    [Header("Ekipmanlar")]
+    public GameObject flashlightObj; // Phase 1: Fener
+    public GameObject attackHandsObj; // Phase 2: Ýçinde iki elin bulunduðu "Phase2_Hands" objesi
 
     void Awake()
     {
@@ -84,6 +85,12 @@ public class GameManager : MonoBehaviour
         if (flashlightObj != null)
         {
             flashlightObj.SetActive(false);
+        }
+
+        // 6. PHASE 2 BAÞLADI: ELLERÝ GÖSTER
+        if (attackHandsObj != null)
+        {
+            attackHandsObj.SetActive(true);
         }
     }
 

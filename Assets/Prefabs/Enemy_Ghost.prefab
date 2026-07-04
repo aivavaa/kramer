@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 676837694274302241}
   m_Layer: 0
   m_Name: Enemy_Ghost
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -159,3 +159,4 @@ MonoBehaviour:
   loseRadius: 25
   attackRadius: 2
   wanderRadius: 20
+  fleeDistance: 15
