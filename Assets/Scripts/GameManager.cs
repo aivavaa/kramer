@@ -7,55 +7,57 @@ public class GameManager : MonoBehaviour
 
     public bool isHunterMode = false;
 
-    [Header("Oyuncu ve Kamera Baðlantýlarý")]
+    [Header("Oyuncu ve Kamera Baï¿½lantï¿½larï¿½")]
     public FirstPersonMovement playerMovement;
     public Camera playerCamera;
 
-    [Header("Görsel Ayarlar (FOV)")]
-    public float hunterFOV = 100f; // Limitlere çarpmamasý için 100-110 arasý idealdir
+    [Header("Gï¿½rsel Ayarlar (FOV)")]
+    public float hunterFOV = 100f; // Limitlere ï¿½arpmamasï¿½ iï¿½in 100-110 arasï¿½ idealdir
     public float fovTransitionSpeed = 5f;
 
-    [Header("Hedef Göstergeleri (Phase 2)")]
-    public GameObject bedXRaySilhouette; // Duvar arkasýndan parlayacak yatak kopyasý
+    [Header("Hedef Gï¿½stergeleri (Phase 2)")]
+    public GameObject bedXRaySilhouette; // Duvar arkasï¿½ndan parlayacak yatak kopyasï¿½
 
     void Awake()
     {
         if (Instance == null) Instance = this;
 
-        // Kod eðer arayüzden atanmamýþsa objeleri otomatik bulsun
+        // Kod eï¿½er arayï¿½zden atanmamï¿½ï¿½sa objeleri otomatik bulsun
         if (playerMovement == null)
             playerMovement = Object.FindFirstObjectByType<FirstPersonMovement>();
 
         if (playerCamera == null)
             playerCamera = Camera.main;
+
+        playerMovement.canRun = true; // Oyuncunun koï¿½abilmesini saï¿½la   
     }
 
-    // Hap alýndýðýnda PillTrigger tarafýndan çaðrýlýr
+    // Hap alï¿½ndï¿½ï¿½ï¿½nda PillTrigger tarafï¿½ndan ï¿½aï¿½rï¿½lï¿½r
     public void ActivateOneMoreTime()
     {
         isHunterMode = true;
-        Debug.Log("ÝLAÇ ALINDI! PHASE 2 (HUNTER MODE) BAÞLADI!");
+        Debug.Log("ï¿½LAï¿½ ALINDI! PHASE 2 (HUNTER MODE) BAï¿½LADI!");
 
-        // 1. DÜÞMANLARI KAÇIR
+        // 1. Dï¿½ï¿½MANLARI KAï¿½IR
         EnemyAI[] allEnemies = Object.FindObjectsByType<EnemyAI>(FindObjectsSortMode.None);
         foreach (EnemyAI enemy in allEnemies)
         {
             enemy.StartFleeing();
         }
 
-        // 2. KARAKTERÝ "MANIC" MODA SOK (Hýzlandýr)
+        // 2. KARAKTERï¿½ "MANIC" MODA SOK (Hï¿½zlandï¿½r)
         if (playerMovement != null)
         {
             playerMovement.isManic = true;
         }
 
-        // 3. FOV'U YUMUÞAKÇA ARTIR
+        // 3. FOV'U YUMUï¿½AKï¿½A ARTIR
         if (playerCamera != null)
         {
             StartCoroutine(TransitionFOV());
         }
 
-        // 4. YATAÐIN SÝLÜETÝNÝ (PHASE 2 HEDEFÝNÝ) AKTÝF ET
+        // 4. YATAï¿½IN Sï¿½Lï¿½ETï¿½Nï¿½ (PHASE 2 HEDEFï¿½Nï¿½) AKTï¿½F ET
         if (bedXRaySilhouette != null)
         {
             bedXRaySilhouette.SetActive(true);
@@ -64,7 +66,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator TransitionFOV()
     {
-        // Ekranýn titrememesi için yumuþak bir Lerp geçiþi
+        // Ekranï¿½n titrememesi iï¿½in yumuï¿½ak bir Lerp geï¿½iï¿½i
         while (Mathf.Abs(playerCamera.fieldOfView - hunterFOV) > 0.1f)
         {
             playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, hunterFOV, Time.deltaTime * fovTransitionSpeed);
