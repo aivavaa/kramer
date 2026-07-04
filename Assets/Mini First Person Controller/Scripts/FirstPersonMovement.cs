@@ -8,7 +8,7 @@ public class FirstPersonMovement : MonoBehaviour
     [Header("Running")]
     public bool canRun = true;
     public bool IsRunning { get; private set; }
-    public float runSpeed = 11;
+    public float runSpeed = 9;
     [Tooltip("Sprinting is driven entirely by this state, not by input. Set this from whatever system tracks the Manic state.")]
     public bool isManic = false;
 
