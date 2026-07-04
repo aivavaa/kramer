@@ -13,6 +13,8 @@ GameObject:
   - component: {fileID: 4643109160139091433}
   - component: {fileID: 7885726424126336454}
   - component: {fileID: 4340775172738983630}
+  - component: {fileID: 2196716210626988295}
+  - component: {fileID: 3925313760332306694}
   m_Layer: 0
   m_Name: "Pill_\u0130tem"
   m_TagString: Untagged
@@ -69,6 +71,7 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: e9fe23b2878b97743a36925728e705ef, type: 2}
+  - {fileID: 2100000, guid: 12b57d6a0d273cd468441f991f268743, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -125,3 +128,40 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a2184a25eba0bc4680046683451aa42, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PillTrigger
+--- !u!114 &2196716210626988295
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5633221869665586039}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshModifier
+  m_SerializedVersion: 0
+  m_OverrideArea: 0
+  m_Area: 0
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 1
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
+--- !u!114 &3925313760332306694
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5633221869665586039}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 706efcb5fe3b8584b850b9eb4b7861a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PillAlarm
+  meshRenderer: {fileID: 4643109160139091433}
+  alarmColor: {r: 1, g: 0, b: 0, a: 1}
+  maxIntensity: 5
+  flashDuration: 1
+  waitTime: 6

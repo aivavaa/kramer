@@ -45,3 +45,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   isHunterMode: 0
+  playerMovement: {fileID: 0}
+  playerCamera: {fileID: 0}
+  hunterFOV: 90
+  fovTransitionSpeed: 5
+  bedXRaySilhouette: {fileID: 0}
+  flashlightObj: {fileID: 0}
