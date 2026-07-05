@@ -1,6 +1,8 @@
 using UnityEngine;
 using System.Collections;
-using UnityEngine.UI; // YENÝ: Slider iþlemleri için eklendi
+using UnityEngine.UI;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
 public class GameManager : MonoBehaviour
 {
@@ -8,123 +10,127 @@ public class GameManager : MonoBehaviour
 
     public bool isHunterMode = false;
 
+    [Header("Sistem Baðlantýlarý")]
+    public TerrorSystem terrorSystem;
+
     [Header("Oyuncu ve Kamera Baðlantýlarý")]
     public FirstPersonMovement playerMovement;
     public Camera playerCamera;
 
-    [Header("Görsel Ayarlar (FOV)")]
-    public float hunterFOV = 100f; // Limitlere çarpmamasý için 100-110 arasý idealdir
+    [Header("Görsel Ayarlar (FOV & Exposure)")]
+    public float hunterFOV = 100f;
     public float fovTransitionSpeed = 5f;
 
+    public Volume globalVolume;
+    public float phase1Exposure = 1f;
+    public float phase2Exposure = -1f;
+    private Exposure exposureOverride;
+
     [Header("Hedef Göstergeleri (Phase 2)")]
-    public GameObject bedXRaySilhouette; // Duvar arkasýndan parlayacak yatak kopyasý
+    public GameObject bedXRaySilhouette;
 
     [Header("Ekipmanlar")]
-    public GameObject flashlightObj; // Phase 1: Fener
-    public GameObject attackHandsObj; // Phase 2: Ýçinde iki elin bulunduðu "Phase2_Hands" objesi
+    public GameObject flashlightObj;
+    public GameObject attackHandsObj;
 
-    // --- YENÝ EKLENEN KISIM: PHASE 2 UI VE SÝSTEM KONTROLÜ ---
     [Header("Phase 2 - Kill Tracker")]
-    public Slider sharedUIBar; // Ekranda var olan tek Slider'ý buraya sürükle
     public int totalEnemies;
     public int killedEnemies = 0;
-    public bool isPhaseClear = false; // Yataða yatabilme kilidi
-    // ---------------------------------------------------------
+    public bool isPhaseClear = false;
+
+    // --- YENÝ EKLENEN KISIM: RENK DEÐÝÞÝMÝ ---
+    public Image sliderFillImage; // Slider'ýn içini boyayan obje
+    public Color bloodRedColor = new Color(0.7f, 0f, 0f, 1f); // Koyu Kan Kýrmýzýsý (Inspector'dan da deðiþtirebilirsin)
+    // -----------------------------------------
 
     void Awake()
     {
         if (Instance == null) Instance = this;
 
-        // Kod eðer arayüzden atanmamýþsa objeleri otomatik bulsun
         if (playerMovement == null)
             playerMovement = Object.FindFirstObjectByType<FirstPersonMovement>();
 
         if (playerCamera == null)
             playerCamera = Camera.main;
 
-        playerMovement.canRun = true; // Oyuncunun koþabilmesini saðla   
+        if (terrorSystem == null)
+            terrorSystem = Object.FindFirstObjectByType<TerrorSystem>();
+
+        playerMovement.canRun = true;
     }
 
     void Start()
     {
-        // 1. Ýþletim sisteminin fare imlecini ekranýn ortasýna kilitler
         Cursor.lockState = CursorLockMode.Locked;
-        // 2. Fare imlecini görünmez yapar
         Cursor.visible = false;
 
-        // Oyun baþladýðýnda yatak silüeti yanlýþlýkla açýk unutulmuþsa bile ZORLA KAPAT.
-        if (bedXRaySilhouette != null)
+        if (bedXRaySilhouette != null) bedXRaySilhouette.SetActive(false);
+
+        if (globalVolume != null)
         {
-            bedXRaySilhouette.SetActive(false);
+            globalVolume.profile.TryGet(out exposureOverride);
         }
     }
 
-    // Hap alýndýðýnda PillTrigger tarafýndan çaðrýlýr
     public void ActivateOneMoreTime()
     {
         isHunterMode = true;
         Debug.Log("ÝLAÇ ALINDI! PHASE 2 (HUNTER MODE) BAÞLADI!");
 
-        // 1. DÜÞMANLARI KAÇIR VE SAY (YENÝ)
-        EnemyAI[] allEnemies = Object.FindObjectsByType<EnemyAI>(FindObjectsSortMode.None);
-        totalEnemies = allEnemies.Length; // Sahnede kaç düþman olduðunu sayýp kaydettik
-
-        foreach (EnemyAI enemy in allEnemies)
+        if (terrorSystem != null)
         {
-            enemy.StartFleeing();
+            terrorSystem.TakePill();
+
+            totalEnemies = 0;
+            foreach (Transform enemyTransform in terrorSystem.enemies)
+            {
+                if (enemyTransform != null)
+                {
+                    totalEnemies++;
+
+                    EnemyAI enemyAI = enemyTransform.GetComponent<EnemyAI>();
+                    if (enemyAI != null) enemyAI.StartFleeing();
+                }
+            }
+
+            if (terrorSystem.terrorMeter != null)
+            {
+                terrorSystem.terrorMeter.maxValue = totalEnemies;
+                terrorSystem.terrorMeter.value = 0;
+            }
+        }
+        else
+        {
+            Debug.LogError("TerrorSystem bulunamadý! Oyun döngüsü kilitlenebilir.");
         }
 
-        // 2. SLIDER'I KILL BAR'A ÇEVÝR (YENÝ)
-        if (sharedUIBar != null)
+        // YENÝ: Ýlacý aldýðýmýzda Slider'ýn rengini Kan Kýrmýzýsý yap
+        if (sliderFillImage != null)
         {
-            sharedUIBar.maxValue = totalEnemies; // Barýn kapasitesini canavar sayýsýna eþitle
-            sharedUIBar.value = 0;               // Barý sýfýrla (henüz kimse ölmedi)
+            sliderFillImage.color = bloodRedColor;
         }
 
-        // 3. KARAKTERÝ "MANIC" MODA SOK (Hýzlandýr)
-        if (playerMovement != null)
-        {
-            playerMovement.isManic = true;
-        }
+        if (playerMovement != null) playerMovement.isManic = true;
 
-        // 4. FOV'U YUMUÞAKÇA ARTIR
-        if (playerCamera != null)
-        {
-            StartCoroutine(TransitionFOV());
-        }
+        if (playerCamera != null) StartCoroutine(TransitionFOV());
+        if (exposureOverride != null) StartCoroutine(TransitionExposure());
 
-        // 5. YATAÐIN SÝLÜETÝNÝ (PHASE 2 HEDEFÝNÝ) AKTÝF ET
-        if (bedXRaySilhouette != null)
-        {
-            bedXRaySilhouette.SetActive(true);
-        }
-
-        // 6. PHASE 1 BÝTTÝ: FENERÝ KAPAT
-        if (flashlightObj != null)
-        {
-            flashlightObj.SetActive(false);
-        }
-
-        // 7. PHASE 2 BAÞLADI: ELLERÝ GÖSTER
-        if (attackHandsObj != null)
-        {
-            attackHandsObj.SetActive(true);
-        }
+        if (bedXRaySilhouette != null) bedXRaySilhouette.SetActive(true);
+        if (flashlightObj != null) flashlightObj.SetActive(false);
+        if (attackHandsObj != null) attackHandsObj.SetActive(true);
     }
 
-    // YENÝ EKLENEN FONKSÝYON: Canavarlar öldüðünde bu çaðrýlacak
     public void EnemyDied()
     {
-        if (!isHunterMode) return; // Eðer avcý modunda deðilsek sayma (Güvenlik önlemi)
+        if (!isHunterMode) return;
 
-        killedEnemies++; // Ölü sayýsýný artýr
+        killedEnemies++;
 
-        if (sharedUIBar != null)
+        if (terrorSystem != null && terrorSystem.terrorMeter != null)
         {
-            sharedUIBar.value = killedEnemies; // Slider'ý doldur
+            terrorSystem.terrorMeter.value = killedEnemies;
         }
 
-        // Tüm canavarlar öldüyse bölüm sonu kilidini aç
         if (killedEnemies >= totalEnemies)
         {
             isPhaseClear = true;
@@ -134,12 +140,21 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator TransitionFOV()
     {
-        // Ekranýn titrememesi için yumuþak bir Lerp geçiþi
         while (Mathf.Abs(playerCamera.fieldOfView - hunterFOV) > 0.1f)
         {
             playerCamera.fieldOfView = Mathf.Lerp(playerCamera.fieldOfView, hunterFOV, Time.deltaTime * fovTransitionSpeed);
             yield return null;
         }
         playerCamera.fieldOfView = hunterFOV;
+    }
+
+    private IEnumerator TransitionExposure()
+    {
+        while (Mathf.Abs(exposureOverride.fixedExposure.value - phase2Exposure) > 0.05f)
+        {
+            exposureOverride.fixedExposure.value = Mathf.Lerp(exposureOverride.fixedExposure.value, phase2Exposure, Time.deltaTime * fovTransitionSpeed);
+            yield return null;
+        }
+        exposureOverride.fixedExposure.value = phase2Exposure;
     }
 }

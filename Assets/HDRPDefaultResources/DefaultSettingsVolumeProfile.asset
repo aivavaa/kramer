@@ -427,6 +427,24 @@ MonoBehaviour:
   tint:
     m_OverrideState: 1
     m_Value: 0
+--- !u!114 &-7707307925974570032
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a7ff42a8c5be6646ad3975f3a54c1eb, type: 3}
+  m_Name: DiffusionProfileList
+  m_EditorClassIdentifier: Unity.RenderPipelines.HighDefinition.Runtime::UnityEngine.Rendering.HighDefinition.DiffusionProfileList
+  active: 1
+  diffusionProfiles:
+    m_OverrideState: 1
+    m_Value:
+    - {fileID: 11400000, guid: 404820c4cf36ad944862fa59c56064f0, type: 2}
+    - {fileID: 11400000, guid: 2384dbf2c1c420f45a792fbc315fbfb1, type: 2}
 --- !u!114 &-7602911381636714710
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -1105,48 +1123,7 @@ MonoBehaviour:
   m_Name: DefaultSettingsVolumeProfile
   m_EditorClassIdentifier: 
   components:
-  - {fileID: 7686318427622180703}
-  - {fileID: -1016694868962581565}
-  - {fileID: 7502528774814404555}
-  - {fileID: 7542669330009093999}
-  - {fileID: 1501199423866068322}
-  - {fileID: 5315503232242033309}
-  - {fileID: 1932259527246508038}
-  - {fileID: 448115243408767295}
-  - {fileID: -7089757308646879465}
-  - {fileID: -8770122170507510650}
-  - {fileID: 4981354747274665315}
-  - {fileID: 5305602202033311358}
-  - {fileID: -2194983203027705593}
-  - {fileID: 4226462952466489638}
-  - {fileID: 5176900191209614346}
-  - {fileID: 3284845649383421398}
-  - {fileID: 5961584486768441913}
-  - {fileID: -8755660484436326360}
-  - {fileID: -8131036293600016632}
-  - {fileID: 661210638529103359}
-  - {fileID: -8913726233523859682}
-  - {fileID: 8114363595150474128}
-  - {fileID: -6556586275243047803}
-  - {fileID: -2292729331742220673}
-  - {fileID: 7183739639039907046}
-  - {fileID: 7281479889500001542}
-  - {fileID: -7602911381636714710}
-  - {fileID: -7710094412830270391}
-  - {fileID: -2072665525974173132}
-  - {fileID: 7070608510264474506}
-  - {fileID: -3320660359165807838}
-  - {fileID: 5295087732761556298}
-  - {fileID: 4631336102567400184}
-  - {fileID: 9010300089477978171}
-  - {fileID: -6225692957491010015}
-  - {fileID: 9196762446678572862}
-  - {fileID: -6899488328329923342}
-  - {fileID: 8095928092092619841}
-  - {fileID: -5767066905859470226}
-  - {fileID: 1450350307795984626}
-  - {fileID: -2118215397724796265}
-  - {fileID: 2232367510068728239}
+  - {fileID: -7707307925974570032}
 --- !u!114 &448115243408767295
 MonoBehaviour:
   m_ObjectHideFlags: 3

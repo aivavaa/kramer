@@ -30,6 +30,18 @@ public class TerrorSystem : MonoBehaviour
 
     private bool isFainted = false;
 
+    // --- YENİ EKLENEN KISIM ---
+    void Start()
+    {
+        // Oyun başladığında barın görsel sınırını terör sınırına (100) eşitle
+        if (terrorMeter != null)
+        {
+            terrorMeter.maxValue = maxTerror;
+            terrorMeter.value = currentTerror;
+        }
+    }
+    // --------------------------
+
     void Update()
     {
         if (isFainted) return;
