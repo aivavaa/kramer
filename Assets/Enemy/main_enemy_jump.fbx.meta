@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: f586a274166aa7f46afd84253e8b7acf
+guid: 5ee7cae613538f84d8e4c1a124159f11
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
@@ -35,7 +35,36 @@ ModelImporter:
       takeName: Armature|mixamo.com
       internalID: -4572650651892053679
       firstFrame: 0
-      lastFrame: 1
+      lastFrame: 24
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Armature|PlaneAction
+      takeName: Armature|PlaneAction
+      internalID: 2920023865792766560
+      firstFrame: 0
+      lastFrame: 109
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -44,9 +73,9 @@ ModelImporter:
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
-      loopBlendOrientation: 1
-      loopBlendPositionY: 1
-      loopBlendPositionXZ: 1
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
       keepOriginalOrientation: 0
       keepOriginalPositionY: 1
       keepOriginalPositionXZ: 0
@@ -529,33 +558,33 @@ ModelImporter:
         length: 0
         modified: 0
     skeleton:
-    - name: main_enemy_final(Clone)
+    - name: main_enemy_jump(Clone)
       parentName: 
       position: {x: 0, y: 0, z: 0}
       rotation: {x: 0, y: 0, z: 0, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: 1.001
-      parentName: main_enemy_final(Clone)
+      parentName: main_enemy_jump(Clone)
       position: {x: -0, y: 0.07634425, z: 0}
       rotation: {x: -0.00000007549789, y: 0, z: -0, w: 1}
       scale: {x: 100, y: 100, z: 100}
     - name: 2.001
-      parentName: main_enemy_final(Clone)
+      parentName: main_enemy_jump(Clone)
       position: {x: -0, y: 0.07634425, z: 0}
       rotation: {x: -0.00000007549789, y: 0, z: -0, w: 1}
       scale: {x: 100, y: 100, z: 100}
     - name: 3.001
-      parentName: main_enemy_final(Clone)
+      parentName: main_enemy_jump(Clone)
       position: {x: -0, y: 0.07634425, z: 0}
       rotation: {x: -0.00000007549789, y: 0, z: -0, w: 1}
       scale: {x: 100, y: 100, z: 100}
     - name: 4.001
-      parentName: main_enemy_final(Clone)
+      parentName: main_enemy_jump(Clone)
       position: {x: -0, y: 0.07634425, z: 0}
       rotation: {x: -0.00000007549789, y: 0, z: -0, w: 1}
       scale: {x: 100, y: 100, z: 100}
     - name: Armature
-      parentName: main_enemy_final(Clone)
+      parentName: main_enemy_jump(Clone)
       position: {x: -0, y: 0.07634425, z: 0}
       rotation: {x: -0.000000037748947, y: 0, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
@@ -950,27 +979,27 @@ ModelImporter:
       rotation: {x: 0, y: -0, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
     - name: Cube.002
-      parentName: main_enemy_final(Clone)
+      parentName: main_enemy_jump(Clone)
       position: {x: -1.2140077e-17, y: 1.7712394, z: 0.49246848}
       rotation: {x: -0.7071069, y: 0, z: 0, w: 0.7071067}
       scale: {x: 8.883085, y: 0.85626227, z: 8.883085}
     - name: Cube.003
-      parentName: main_enemy_final(Clone)
+      parentName: main_enemy_jump(Clone)
       position: {x: 2.723458e-16, y: 1.4769497, z: 0.46578753}
       rotation: {x: -0.7071069, y: 0, z: 0, w: 0.7071067}
       scale: {x: 9.885942, y: 0.90913355, z: 9.885942}
     - name: Sphere.001
-      parentName: main_enemy_final(Clone)
+      parentName: main_enemy_jump(Clone)
       position: {x: -0.17690477, y: 1.7050778, z: 0.286378}
       rotation: {x: -0.000000015893256, y: 0, z: -0, w: 1}
       scale: {x: 7.1156874, y: 7.1156874, z: 7.1156874}
     - name: "k\u0131yafetlow.001"
-      parentName: main_enemy_final(Clone)
+      parentName: main_enemy_jump(Clone)
       position: {x: -0, y: 0.07634425, z: 0}
       rotation: {x: -0.00000007549789, y: 0, z: -0, w: 1}
       scale: {x: 100, y: 100, z: 100}
     - name: low:Group27066.001
-      parentName: main_enemy_final(Clone)
+      parentName: main_enemy_jump(Clone)
       position: {x: -0, y: 0.07634425, z: 0}
       rotation: {x: -0.00000007549789, y: 0, z: -0, w: 1}
       scale: {x: 100, y: 100, z: 100}

@@ -3,7 +3,7 @@ using UnityEngine.AI;
 
 public class EnemyAI : MonoBehaviour
 {
-    // 4. Durumu ekledik: Kaçış (GameManager tarafından tetiklenecek)
+    // 4. Durumu ekledik: KaÃ§Ä±ÅŸ (GameManager tarafÄ±ndan tetiklenecek)
     public enum AIState { Wandering, Chasing, Attacking, Fleeing }
     public AIState currentState = AIState.Wandering;
 
@@ -11,30 +11,32 @@ public class EnemyAI : MonoBehaviour
     public Transform playerTarget;
     public float eyeHeight = 1f;
 
-    [Header("Görüş & Algılama (Wander Modu)")]
-    public float viewRadius = 15f;       // Görme mesafesi
+    [Header("GÃ¶rÃ¼ÅŸ & AlgÄ±lama (Wander Modu)")]
+    public float viewRadius = 15f;       // GÃ¶rme mesafesi
     [Range(0, 360)]
-    public float viewAngle = 90f;        // Görüş açısı
-    public float closeAwarenessRadius = 3f; // Bu mesafeye girersen arkası dönük olsa bile seni HİSSEDER
+    public float viewAngle = 90f;        // GÃ¶rÃ¼ÅŸ aÃ§Ä±sÄ±
+    public float closeAwarenessRadius = 3f; // Bu mesafeye girersen arkasÄ± dÃ¶nÃ¼k olsa bile seni HÄ°SSEDER
 
-    [Header("Kovalama Ayarları (Chase Modu)")]
-    public float loseRadius = 25f;       // Peşini bırakması için arayı ne kadar açman gerektiği
+    [Header("Kovalama AyarlarÄ± (Chase Modu)")]
+    public float loseRadius = 25f;       // PeÅŸini bÄ±rakmasÄ± iÃ§in arayÄ± ne kadar aÃ§man gerektiÄŸi
 
-    [Header("Saldırı Ayarları (Attack Modu)")]
-    public float attackRadius = 2f;      // Sana vurmak için duracağı mesafe
+    [Header("SaldÄ±rÄ± AyarlarÄ± (Attack Modu)")]
+    public float attackRadius = 2f;      // Sana vurmak iÃ§in duracaÄŸÄ± mesafe
 
-    [Header("Gezinme Ayarları")]
+    [Header("Gezinme AyarlarÄ±")]
     public float wanderRadius = 20f;
     private Vector3 patrolCenter;
 
-    [Header("Kaçış Ayarları (Hunter Modu)")]
-    public float fleeDistance = 15f;     // İlacı aldığında senden ne kadar uzağa kaçmaya çalışacak
+    [Header("KaÃ§Ä±ÅŸ AyarlarÄ± (Hunter Modu)")]
+    public float fleeDistance = 15f;     // Ä°lacÄ± aldÄ±ÄŸÄ±nda senden ne kadar uzaÄŸa kaÃ§maya Ã§alÄ±ÅŸacak
 
     private NavMeshAgent agent;
+    private Animator animator;           // YENÄ° EKLENDÄ°: Animator bileÅŸeni referansÄ±
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
+        animator = GetComponentInChildren<Animator>(); // YENÄ° EKLENDÄ°: Ã‡ocuk objedeki (main_enemy_final) Animator'Ä± bulur
         patrolCenter = transform.position;
 
         if (playerTarget == null)
@@ -45,12 +47,12 @@ public class EnemyAI : MonoBehaviour
         SetRandomWanderDestination();
     }
 
-    // GameManager'ın (veya hapın) çağıracağı fonksiyon
+    // GameManager'Ä±n (veya hapÄ±n) Ã§aÄŸÄ±racaÄŸÄ± fonksiyon
     public void StartFleeing()
     {
         currentState = AIState.Fleeing;
         agent.isStopped = false;
-        agent.speed += 2f; // Panikledikleri için biraz daha hızlı koşarlar
+        agent.speed += 2f; // Panikledikleri iÃ§in biraz daha hÄ±zlÄ± koÅŸarlar
     }
 
     void Update()
@@ -59,7 +61,7 @@ public class EnemyAI : MonoBehaviour
 
         float distanceToPlayer = Vector3.Distance(transform.position, playerTarget.position);
 
-        // --- 1. STATE GEÇİŞ KONTROLLERİ (Karar Verme Merkezi) ---
+        // --- 1. STATE GEÃ‡Ä°Å KONTROLLERÄ° (Karar Verme Merkezi) ---
         switch (currentState)
         {
             case AIState.Wandering:
@@ -78,6 +80,12 @@ public class EnemyAI : MonoBehaviour
                 else if (distanceToPlayer <= attackRadius)
                 {
                     currentState = AIState.Attacking;
+                    
+                    // YENÄ° EKLENDÄ°: SaldÄ±rÄ± durumuna geÃ§ildiÄŸi an animasyonu BÄ°R KERE tetikler
+                    if (animator != null)
+                    {
+                        animator.SetTrigger("isAttacking");
+                    }
                 }
                 break;
 
@@ -90,11 +98,11 @@ public class EnemyAI : MonoBehaviour
                 break;
 
             case AIState.Fleeing:
-                // Kaçış modundayken artık geri dönmez, sürekli kaçar (yakalanıp yok edilene kadar)
+                // KaÃ§Ä±ÅŸ modundayken artÄ±k geri dÃ¶nmez, sÃ¼rekli kaÃ§ar (yakalanÄ±p yok edilene kadar)
                 break;
         }
 
-        // --- 2. STATE EYLEMLERİ (Fiziksel Hareketler) ---
+        // --- 2. STATE EYLEMLERÄ° (Fiziksel Hareketler) ---
         switch (currentState)
         {
             case AIState.Wandering: PerformWandering(); break;
@@ -104,7 +112,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // --- GÖRÜŞ SİSTEMİ ---
+    // --- GÃ–RÃœÅ SÄ°STEMÄ° ---
     private bool CanSeePlayer(float distance)
     {
         if (distance > viewRadius) return false;
@@ -133,7 +141,7 @@ public class EnemyAI : MonoBehaviour
         return false;
     }
 
-    // --- DAVRANIŞLAR ---
+    // --- DAVRANIÅLAR ---
     private void PerformChasing()
     {
         agent.isStopped = false;
@@ -161,14 +169,14 @@ public class EnemyAI : MonoBehaviour
 
     private void PerformFleeing()
     {
-        // Oyuncudan düşmana doğru bir yön vektörü çiz (Ters yön)
+        // Oyuncudan dÃ¼ÅŸmana doÄŸru bir yÃ¶n vektÃ¶rÃ¼ Ã§iz (Ters yÃ¶n)
         Vector3 runDirection = (transform.position - playerTarget.position).normalized;
 
-        // Düşmanın kendi pozisyonundan o ters yöne doğru fleeDistance kadar uzağı hedefle
+        // DÃ¼ÅŸmanÄ±n kendi pozisyonundan o ters yÃ¶ne doÄŸru fleeDistance kadar uzaÄŸÄ± hedefle
         Vector3 targetPos = transform.position + (runDirection * fleeDistance);
 
         NavMeshHit hit;
-        // O hedef noktanın NavMesh üzerinde yürünebilir bir yer olup olmadığını kontrol et
+        // O hedef noktanÄ±n NavMesh Ã¼zerinde yÃ¼rÃ¼nebilir bir yer olup olmadÄ±ÄŸÄ±nÄ± kontrol et
         if (NavMesh.SamplePosition(targetPos, out hit, 5f, NavMesh.AllAreas))
         {
             agent.SetDestination(hit.position);
@@ -187,15 +195,15 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // --- SALDIRI ALMA SİSTEMİ ---
+    // --- SALDIRI ALMA SÄ°STEMÄ° ---
     public void TakeDamage()
     {
-        // Sadece bizden kaçarken (Phase 2'de) hasar alabilirler
+        // Sadece bizden kaÃ§arken (Phase 2'de) hasar alabilirler
         if (currentState == AIState.Fleeing)
         {
-            Debug.Log("Düşman vuruldu ve yok edildi!");
+            Debug.Log("DÃ¼ÅŸman vuruldu ve yok edildi!");
 
-            // --- YENİ EKLENEN KISIM: GameManager'a ölüm sinyali gönder ---
+            // --- YENÄ° EKLENEN KISIM: GameManager'a Ã¶lÃ¼m sinyali gÃ¶nder ---
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.EnemyDied();
@@ -205,7 +213,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // Görselleştirmeler (Gizmos)
+    // GÃ¶rselleÅŸtirmeler (Gizmos)
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
