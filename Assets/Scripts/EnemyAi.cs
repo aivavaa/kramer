@@ -30,13 +30,19 @@ public class EnemyAI : MonoBehaviour
     [Header("Kaçış Ayarları (Hunter Modu)")]
     public float fleeDistance = 15f;     // İlacı aldığında senden ne kadar uzağa kaçmaya çalışacak
 
+    // --- YENİ EKLENEN KISIM: X-Ray Alarm Sistemi ---
+    [Header("Phase 2 - X-Ray Alarm")]
+    public GameObject xRaySilhouette;    // Hiyerarşide oluşturup kapattığımız kırmızı maske grubunu buraya atacağız
+    public float blinkInterval = 2f;     // Kaç saniyede bir yanıp sönecek
+    // -----------------------------------------------
+
     private NavMeshAgent agent;
-    private Animator animator;           // YENİ EKLENDİ: Animator bileşeni referansı
+    private Animator animator;           // Çocuk objedeki (main_enemy_final) Animator'ı bulur
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        animator = GetComponentInChildren<Animator>(); // YENİ EKLENDİ: Çocuk objedeki (main_enemy_final) Animator'ı bulur
+        animator = GetComponentInChildren<Animator>();
         patrolCenter = transform.position;
 
         if (playerTarget == null)
@@ -53,6 +59,12 @@ public class EnemyAI : MonoBehaviour
         currentState = AIState.Fleeing;
         agent.isStopped = false;
         agent.speed += 2f; // Panikledikleri için biraz daha hızlı koşarlar
+
+        // --- YENİ EKLENEN KISIM: Kaçış başladığı an duvar arkası çakar lambayı başlat ---
+        if (xRaySilhouette != null)
+        {
+            StartCoroutine(XRayBlinkRoutine());
+        }
     }
 
     void Update()
@@ -80,8 +92,8 @@ public class EnemyAI : MonoBehaviour
                 else if (distanceToPlayer <= attackRadius)
                 {
                     currentState = AIState.Attacking;
-                    
-                    // YENİ EKLENDİ: Saldırı durumuna geçildiği an animasyonu BİR KERE tetikler
+
+                    // Saldırı durumuna geçildiği an animasyonu BİR KERE tetikler
                     if (animator != null)
                     {
                         animator.SetTrigger("isAttacking");
@@ -203,7 +215,7 @@ public class EnemyAI : MonoBehaviour
         {
             Debug.Log("Düşman vuruldu ve yok edildi!");
 
-            // --- YENİ EKLENEN KISIM: GameManager'a ölüm sinyali gönder ---
+            // GameManager'a ölüm sinyali gönder
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.EnemyDied();
@@ -212,6 +224,21 @@ public class EnemyAI : MonoBehaviour
             Destroy(gameObject);
         }
     }
+
+    // --- YENİ EKLENEN KISIM: 2 Saniyede bir aç/kapa yapan zamanlayıcı döngü ---
+    private System.Collections.IEnumerator XRayBlinkRoutine()
+    {
+        // Canavar Fleeing (Kaçış) modunda olduğu sürece bu döngü sonsuza kadar döner
+        while (currentState == AIState.Fleeing)
+        {
+            xRaySilhouette.SetActive(true); // Silüeti göster (Duvar arkasından parlar)
+            yield return new WaitForSeconds(blinkInterval / 2f); // 1 saniye bekle
+
+            xRaySilhouette.SetActive(false); // Silüeti gizle
+            yield return new WaitForSeconds(blinkInterval / 2f); // 1 saniye bekle
+        }
+    }
+    // --------------------------------------------------------------------------
 
     // Görselleştirmeler (Gizmos)
     private void OnDrawGizmosSelected()
