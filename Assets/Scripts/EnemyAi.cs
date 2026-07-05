@@ -194,6 +194,13 @@ public class EnemyAI : MonoBehaviour
         if (currentState == AIState.Fleeing)
         {
             Debug.Log("Düþman vuruldu ve yok edildi!");
+
+            // --- YENÝ EKLENEN KISIM: GameManager'a ölüm sinyali gönder ---
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.EnemyDied();
+            }
+
             Destroy(gameObject);
         }
     }

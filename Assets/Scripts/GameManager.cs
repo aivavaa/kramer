@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using UnityEngine.UI; // YENÝ: Slider iþlemleri için eklendi
 
 public class GameManager : MonoBehaviour
 {
@@ -21,6 +22,14 @@ public class GameManager : MonoBehaviour
     [Header("Ekipmanlar")]
     public GameObject flashlightObj; // Phase 1: Fener
     public GameObject attackHandsObj; // Phase 2: Ýçinde iki elin bulunduðu "Phase2_Hands" objesi
+
+    // --- YENÝ EKLENEN KISIM: PHASE 2 UI VE SÝSTEM KONTROLÜ ---
+    [Header("Phase 2 - Kill Tracker")]
+    public Slider sharedUIBar; // Ekranda var olan tek Slider'ý buraya sürükle
+    public int totalEnemies;
+    public int killedEnemies = 0;
+    public bool isPhaseClear = false; // Yataða yatabilme kilidi
+    // ---------------------------------------------------------
 
     void Awake()
     {
@@ -56,41 +65,70 @@ public class GameManager : MonoBehaviour
         isHunterMode = true;
         Debug.Log("ÝLAÇ ALINDI! PHASE 2 (HUNTER MODE) BAÞLADI!");
 
-        // 1. DÜÞMANLARI KAÇIR
+        // 1. DÜÞMANLARI KAÇIR VE SAY (YENÝ)
         EnemyAI[] allEnemies = Object.FindObjectsByType<EnemyAI>(FindObjectsSortMode.None);
+        totalEnemies = allEnemies.Length; // Sahnede kaç düþman olduðunu sayýp kaydettik
+
         foreach (EnemyAI enemy in allEnemies)
         {
             enemy.StartFleeing();
         }
 
-        // 2. KARAKTERÝ "MANIC" MODA SOK (Hýzlandýr)
+        // 2. SLIDER'I KILL BAR'A ÇEVÝR (YENÝ)
+        if (sharedUIBar != null)
+        {
+            sharedUIBar.maxValue = totalEnemies; // Barýn kapasitesini canavar sayýsýna eþitle
+            sharedUIBar.value = 0;               // Barý sýfýrla (henüz kimse ölmedi)
+        }
+
+        // 3. KARAKTERÝ "MANIC" MODA SOK (Hýzlandýr)
         if (playerMovement != null)
         {
             playerMovement.isManic = true;
         }
 
-        // 3. FOV'U YUMUÞAKÇA ARTIR
+        // 4. FOV'U YUMUÞAKÇA ARTIR
         if (playerCamera != null)
         {
             StartCoroutine(TransitionFOV());
         }
 
-        // 4. YATAÐIN SÝLÜETÝNÝ (PHASE 2 HEDEFÝNÝ) AKTÝF ET
+        // 5. YATAÐIN SÝLÜETÝNÝ (PHASE 2 HEDEFÝNÝ) AKTÝF ET
         if (bedXRaySilhouette != null)
         {
             bedXRaySilhouette.SetActive(true);
         }
 
-        // 5. PHASE 1 BÝTTÝ: FENERÝ KAPAT
+        // 6. PHASE 1 BÝTTÝ: FENERÝ KAPAT
         if (flashlightObj != null)
         {
             flashlightObj.SetActive(false);
         }
 
-        // 6. PHASE 2 BAÞLADI: ELLERÝ GÖSTER
+        // 7. PHASE 2 BAÞLADI: ELLERÝ GÖSTER
         if (attackHandsObj != null)
         {
             attackHandsObj.SetActive(true);
+        }
+    }
+
+    // YENÝ EKLENEN FONKSÝYON: Canavarlar öldüðünde bu çaðrýlacak
+    public void EnemyDied()
+    {
+        if (!isHunterMode) return; // Eðer avcý modunda deðilsek sayma (Güvenlik önlemi)
+
+        killedEnemies++; // Ölü sayýsýný artýr
+
+        if (sharedUIBar != null)
+        {
+            sharedUIBar.value = killedEnemies; // Slider'ý doldur
+        }
+
+        // Tüm canavarlar öldüyse bölüm sonu kilidini aç
+        if (killedEnemies >= totalEnemies)
+        {
+            isPhaseClear = true;
+            Debug.Log("Bütün canavarlar temizlendi! Artýk yataða dönüp uyuyabilirsin.");
         }
     }
 

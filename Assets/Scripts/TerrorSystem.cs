@@ -4,41 +4,40 @@ using UnityEngine.UI;
 public class TerrorSystem : MonoBehaviour
 {
     [Header("Assign in Inspector")]
-    public Transform player;       
-    public Transform[] enemies;    
-    
+    public Transform player;
+    public Transform[] enemies;
+
     [Header("UI Elements")]
-    public Slider terrorMeter;         
-    public GameObject gameOverScreen;  
+    public Slider terrorMeter;
+    public GameObject gameOverScreen;
 
     [Header("Expressions")]
-    public Image expressionUI;         
-    public Sprite[] expressionSprites; 
+    public Image expressionUI;
+    public Sprite[] expressionSprites;
 
-    // YENİ EKLENEN KISIM: İlaç ve Manik Mod Ayarları
+    // İlaç ve Manik Mod Ayarları
     [Header("Manic Mode Settings")]
     public Sprite manicSprite;         // İlacı içince görünecek özel sprite
     public bool isManicMode = false;   // Karakter şu an avcı modunda mı?
 
     [Header("Terror Settings")]
     public float currentTerror = 0f;
-    public float maxTerror = 100f; 
-    public float terrorRadius = 15f; 
-    
-    public float baseIncreaseRate = 5f; 
+    public float maxTerror = 100f;
+    public float terrorRadius = 15f;
+
+    public float baseIncreaseRate = 5f;
     public float decreaseRate = 3f;
 
-    private bool isFainted = false; 
+    private bool isFainted = false;
 
     void Update()
     {
-        if (isFainted) return; 
+        if (isFainted) return;
 
-        // Eğer manik moddaysak (ilaç içildiyse), terör artmasın (isteğe bağlı)
+        // Eğer manik moddaysak (ilaç içildiyse), terör artmasın ve değeri sıfırlansın
         if (isManicMode)
         {
-            // İstersen burada currentTerror'ü sıfırlayabilir veya dondurabilirsin.
-            // Örnek: currentTerror -= decreaseRate * Time.deltaTime * 2f; 
+            currentTerror = 0f;
         }
         else
         {
@@ -48,7 +47,10 @@ public class TerrorSystem : MonoBehaviour
 
         currentTerror = Mathf.Clamp(currentTerror, 0f, maxTerror);
 
-        if (terrorMeter != null)
+        // --- KRİTİK DEĞİŞİKLİK ---
+        // Eğer manik modda DEĞİLSEK (Phase 1) bu script slider'ı kontrol eder.
+        // Eğer manik moddaysak (Phase 2) bu script barı salar ve kontrol GameManager'ın Kill Bar'ına geçer.
+        if (terrorMeter != null && !isManicMode)
         {
             terrorMeter.value = currentTerror;
         }
@@ -81,7 +83,7 @@ public class TerrorSystem : MonoBehaviour
 
         if (enemyIsNear)
         {
-            float distanceMultiplier = 1f - (closestDistance / terrorRadius); 
+            float distanceMultiplier = 1f - (closestDistance / terrorRadius);
             currentTerror += (baseIncreaseRate + (distanceMultiplier * 10f)) * Time.deltaTime;
         }
         else
@@ -94,14 +96,14 @@ public class TerrorSystem : MonoBehaviour
     {
         if (expressionUI == null) return;
 
-        // YENİ EKLENEN KISIM: Eğer ilaç içildiyse, sadece avcı sprite'ını göster ve fonksiyondan çık
+        // Eğer ilaç içildiyse, sadece avcı sprite'ını göster ve fonksiyondan çık
         if (isManicMode)
         {
             if (manicSprite != null)
             {
                 expressionUI.sprite = manicSprite;
             }
-            return; 
+            return;
         }
 
         // Normal Terör Yüzleri (İlaç içilmediyse çalışır)
@@ -110,18 +112,18 @@ public class TerrorSystem : MonoBehaviour
         float terrorPercent = currentTerror / maxTerror;
         int spriteIndex = Mathf.FloorToInt(terrorPercent * expressionSprites.Length);
         spriteIndex = Mathf.Clamp(spriteIndex, 0, expressionSprites.Length - 1);
-        
+
         expressionUI.sprite = expressionSprites[spriteIndex];
     }
 
-    // YENİ EKLENEN KISIM: İlacı aldığında bu fonksiyonu çağıracaksın
+    // İlacı aldığında bu fonksiyonu çağıracaksın
     public void TakePill()
     {
         isManicMode = true;
         Debug.Log("İLAÇ ALINDI! ROLLER DEĞİŞTİ, AVCI MODU AKTİF!");
-        
+
         // Sprite'ın anında güncellenmesi için çağırıyoruz
-        UpdateExpression(); 
+        UpdateExpression();
     }
 
     void TriggerFaintState()
@@ -130,7 +132,7 @@ public class TerrorSystem : MonoBehaviour
         Debug.Log("100% TERROR REACHED: BAYILMA EKRANI TETIKLENDI!");
 
         if (gameOverScreen != null) gameOverScreen.SetActive(true);
-        Time.timeScale = 0f; 
+        Time.timeScale = 0f;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
